@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.random import randint
+from random import random
 
 def individual_cross_parts(input_string,cross_point):
     first_part  = input_string[:cross_point]
@@ -62,11 +63,18 @@ def ga_loop(pizza, n_generations=100, population_size=10, n_elite=1,
         for i in range(population_size - n_elite):
             if random() < crossover_prob:
                 parent1, parent2 = select(population,fitnesses[gen,:],2)
-                child = crossover(parent1, parent2)
+                child1, child2 = crossover(parent1, parent2)
+                i += 1
+                if random() < mutation_prob:
+                    child = mutate(child1, rows, cols, sigma)
+                new_population.append(child)
+                if random() < mutation_prob:
+                    child = mutate(child2, rows, cols, sigma)
+                new_population.append(child)
             else:
                 child = select(population,fitnesses[gen,:],1)
-            if random() < mutation_prob:
-                child = mutate(child, rows, cols, sigma)
-            new_population.append(child)
+                if random() < mutation_prob:
+                    child = mutate(child, rows, cols, sigma)
+                new_population.append(child)
             
         population = new_population
