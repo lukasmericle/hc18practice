@@ -31,14 +31,13 @@ def to_submission(chrom, title):
     f.write(str(n)+'\n')
     for r in rs:
         r1 = r[0]; c1 = r[1]; r2 = r[2]; c2 = r[3]
-        f.write(str(r[0]) + ' ' + str(r[1]) + ' ' + str(r2) + ' ' + str(c2) + '\n')
+        f.write(str(r1) + ' ' + str(c1) + ' ' + str(r2) + ' ' + str(c2) + '\n')
     f.close()
 
 def get_overlap(chrom, pizza):
     R = to_rectangles(chrom)
     overlap_matrix = np.zeros_like(pizza)
-    
     for r_i,c_i,r_e,c_e in R:
         overlap_matrix[r_i:r_e+1,c_i:c_e+1] += 1
-
+    print()
     print(overlap_matrix, R.shape[0])

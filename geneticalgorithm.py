@@ -70,8 +70,8 @@ def mutate(chrom, rows, cols, sigma, mut_per_gene):
     chrom += np.around(randos * binomial(1, mut_per_gene, len(chrom))).astype(np.int16)
     n, rs = rshp(chrom)
     zeros = np.zeros((rs.shape[0],2))
-    rs[:,[0,2]] = np.maximum(zeros, np.minimum(zeros+rows, rs[:,[0,2]]))
-    rs[:,[1,3]] = np.maximum(zeros, np.minimum(zeros+cols, rs[:,[1,3]]))
+    rs[:,[0,2]] = np.maximum(zeros, np.minimum(zeros+rows-1, rs[:,[0,2]]))
+    rs[:,[1,3]] = np.maximum(zeros, np.minimum(zeros+cols-1, rs[:,[1,3]]))
     # latent bug: does not rescale last 1,2,3 genes if they are present
     rechrom = to_chromosome(rs)
     tailchrom = chrom[-(len(chrom)%4):]
@@ -95,9 +95,10 @@ def get_fitnesses(chroms, pizza, L, H, alpha, beta, gamma, mu):
         fits[i] = get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu)
     return fits
 
-def write_best_to_file(population, fits, title):
+def write_best_to_file(population, fits, pizza, title):
     bestfit = fits.argsort()[0]
     bestchrom = population[bestfit]
+    get_overlap(bestchrom, pizza)
     to_submission(bestchrom, title)
 
 def get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes):
@@ -117,11 +118,13 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
 
     n_mushrooms = np.sum(pizza)
     n_tomatoes = pizza.size - n_mushrooms
+
+    penalty_diff = 1e-3
     
-    alpha = 1
-    beta = 1
-    gamma = 1
-    mu = 1
+    alpha = penalty_diff
+    beta = penalty_diff
+    gamma = penalty_diff
+    mu = penalty_diff
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
@@ -134,10 +137,10 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
         
         fitnesses[gen,:] = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
         if gen%10==0:
-            write_best_to_file(population, fitnesses[gen,:], title)
+            write_best_to_file(population, fitnesses[gen,:], pizza, title)
+            print("{:.3f} {:.3f} {:.3f} {:.3f} {:.3f}".format(sigma, alpha, beta, gamma, mu))
 
         new_population = find_elite(population, fitnesses[gen,:], n_elite)
-        get_overlap(new_population[0], pizza)
 
         while len(new_population) < population_size:
             parent1, parent2 = tournselect(population, fitnesses[gen,:], 2)
@@ -155,12 +158,11 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
             new_population[i] = mutate(new_population[i], rows, cols, sigma, mut_per_gene)
         
         population = new_population
-        sigma *= 1 - 1e-6
-        alpha *= 1 + 1e-6
-        beta  *= 1 + 1e-6
-        gamma *= 1 + 2e-6
-        mu    *= 1 + 2e-6
-        #print(sigma, '\t', alpha, '\t', beta, '\t', gamma, '\t', mu)
+        sigma *= 1 - 0.1*penalty_diff
+        alpha *= 1 + 2*penalty_diff
+        beta  *= 1 + 2*penalty_diff
+        gamma *= 1 + penalty_diff
+        mu    *= 1 + penalty_diff
 
     final_fitnesses = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
-    write_best_to_file(population, fitnesses[gen,:], title)
+    write_best_to_file(population, fitnesses[gen,:], pizza, title)

@@ -9,8 +9,8 @@ def get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu):
     for r_i,c_i,r_e,c_e in R:
         slice_matrix = pizza[r_i:r_e+1,c_i:c_e+1];
     
-        n_tomatoes = np.sum(slice_matrix)
-        n_mushrooms = slice_matrix.size - n_tomatoes
+        n_mushrooms = np.sum(slice_matrix)
+        n_tomatoes = slice_matrix.size - n_mushrooms
         
         fitness = fitness + alpha*(max(0,L-n_tomatoes))**2 
         fitness = fitness + beta*(max(0,L-n_mushrooms))**2
@@ -24,4 +24,3 @@ def get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu):
     fitness = fitness + overlap_penalty
     
     return fitness
-    
