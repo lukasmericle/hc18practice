@@ -40,3 +40,7 @@ def mutate(chrom, rows, cols, sigma):
     chrom[:,[0,2]] = np.max(0, np.min(rows, chrom[:,[0,2]]))
     chrom[:,[1,3]] = np.max(0, np.min(cols, chrom[:,[1,3]]))
     return chrom
+
+def find_elite(chroms, fitnesses, k):
+    elites = fitnesses.argsort()[:k]
+    return chroms[elites]
