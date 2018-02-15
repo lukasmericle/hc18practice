@@ -28,7 +28,7 @@ def to_rectangles(chrom):
 def mutate(chrom, rows, cols, sigma):
     mu = 0
     randos = np.random.normal(mu, sigma, len(chrom))
-    chrom += randos
+    chrom += np.around(randos)
     chrom[:,[0,2]] = np.max(0, np.min(rows, chrom[:,[0,2]]))
     chrom[:,[1,3]] = np.max(0, np.min(cols, chrom[:,[1,3]]))
     return chrom
