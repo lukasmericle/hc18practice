@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.random import randint
 from random import random
+from ComputeSingleFitness import get_fitness
 
 def individual_cross_parts(input_string, cross_point):
     first_part  = input_string[:cross_point]
@@ -56,10 +57,10 @@ def gen_population(rows, cols, min_rectangles, max_rectangles):
         population.append(chrom)
     return population
 
-def get_fitnesses(chroms, pizza, gen):
+def get_fitnesses(chroms, pizza, L, H, alpha, beta, gamma, mu):
     fits = np.zeros(len(chroms))
     for i,chrom in enumerate(chroms):
-        fits[i] = get_fitness(chrom, pizza, gen)
+        fits[i] = get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu)
     return fits
 
 
@@ -69,11 +70,16 @@ def write_best_to_file(population, fits, title):
     to_submission(bestchrom, title)
 
 
-def ga_loop(pizza, title, n_generations=100, population_size=10, n_elite=1,
+def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_elite=1,
             crossover_prob=0.1, mutation_prob=0.5):
     
     rows, cols = pizza.shape
+    L, H = constraints
     
+    alpha = 1
+    beta = 1
+    gamma = 1
+    mu = 1
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles()
@@ -82,7 +88,7 @@ def ga_loop(pizza, title, n_generations=100, population_size=10, n_elite=1,
 
     for gen in range(n_generations):
         
-        fitnesses[gen,:] = get_fitnesses(population, pizza, gen)
+        fitnesses[gen,:] = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
         if gen%10==0:
             write_best_to_file(population, fitnesses[gen,:], title)
 
@@ -101,6 +107,10 @@ def ga_loop(pizza, title, n_generations=100, population_size=10, n_elite=1,
         
         population = new_population
         sigma *= 0.999
+        alpha *= 1.001
+        beta  *= 1.001
+        gamma *= 1.001
+        mu    *= 1.01
 
-    final_fitnesses = get_fitnesses(population, pizza, gen)
+    final_fitnesses = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
     write_best_to_file(population, fitnesses[gen,:], title)
