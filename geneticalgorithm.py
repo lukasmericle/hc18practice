@@ -63,18 +63,27 @@ def get_fitnesses(chroms, pizza, L, H, alpha, beta, gamma, mu):
         fits[i] = get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu)
     return fits
 
-
 def write_best_to_file(population, fits, title):
     bestfit = fits.argsort()[0]
     bestchrom = population[bestfit]
     to_submission(bestchrom, title)
 
+def get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes):
+    nr1 = np.floor(n_mushrooms/L)
+    nr2 = np.floor(n_tomatoes/L)
+    nr3 = np.ceil((n_mushrooms + n_tomatoes)/H)
+    nmin = min([nr1, nr2])
+    nmax = max([nmin, nr3])
+    return nmin, nmax
 
 def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_elite=1,
             crossover_prob=0.1, mutation_prob=0.5):
     
     rows, cols = pizza.shape
     L, H = constraints
+
+    n_mushrooms = np.sum(pizza)
+    n_tomatoes = pizza.size - n_mushrooms
     
     alpha = 1
     beta = 1
@@ -82,7 +91,7 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     mu = 1
     sigma = 0.1*(rows+cols)/2
 
-    min_rectangles, max_rectangles = get_opt_number_rectangles()
+    min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
     population = gen_population(rows, cols, min_rectangles, max_rectangles)
     fitnesses = np.zeros(n_generations, population_size)
 

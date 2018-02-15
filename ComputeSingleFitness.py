@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Feb 15 14:30:15 2018
-
-@author: andre
-"""
-
-# [ri,re,ci,ce]
 import numpy as np
 
 def get_fitness(R, pizza, L, H, alpha, beta, gamma, mu):
