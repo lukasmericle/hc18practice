@@ -6,7 +6,7 @@ def get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu):
     overlap_matrix = np.zeros_like(pizza)
     
     fitness = 0
-    for r_i,r_e,c_i,c_e in R:
+    for r_i,c_i,r_e,c_e in R:
         slice_matrix = pizza[r_i:r_e+1,c_i:c_e+1];
     
         n_tomatoes = np.sum(slice_matrix)

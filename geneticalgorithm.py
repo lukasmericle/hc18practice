@@ -68,7 +68,8 @@ def mutate(chrom, rows, cols, sigma, mut_per_gene):
     rs[:,[1,3]] = np.maximum(zeros, np.minimum(zeros+cols, rs[:,[1,3]]))
     # latent bug: does not rescale last 1,2,3 genes if they are present
     rechrom = to_chromosome(rs)
-    return np.append(rechrom, chrom[len(chrom)%4:])
+    tailchrom = chrom[-(len(chrom)%4):]
+    return np.append(rechrom, tailchrom)
 
 def find_elite(chroms, fitnesses, k):
     elites = fitnesses.argsort()[:k]
@@ -110,10 +111,10 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     n_mushrooms = np.sum(pizza)
     n_tomatoes = pizza.size - n_mushrooms
     
-    alpha = 10
-    beta = 10
-    gamma = 10
-    mu = 100
+    alpha = 1
+    beta = 1
+    gamma = 1
+    mu = 10
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
@@ -125,7 +126,6 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     for gen in range(n_generations):
         
         fitnesses[gen,:] = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
-        print(fitnesses[gen,:])
         if gen%10==0:
             write_best_to_file(population, fitnesses[gen,:], title)
 
@@ -148,8 +148,11 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
         sigma *= 0.999
         alpha *= 1.001
         beta  *= 1.001
-        gamma *= 1.001
+        gamma *= 1.01
         mu    *= 1.01
+        print()
+        for c in population:
+            print(len(c))
 
     final_fitnesses = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
     write_best_to_file(population, fitnesses[gen,:], title)
