@@ -25,7 +25,7 @@ def crossover(input_string1, input_string2):
     
     return new_individual1, new_individual2
     
-def select(population,fitnesses,n_indiviudals):
+def select(population, fitnesses, n_indiviudals):
     parents = []
     probs = np.cumsum(fitnesses)/np.sum(fitnesses)
     for i in range(n_indiviudals):
@@ -56,11 +56,12 @@ def gen_population(rows, cols, min_rectangles, max_rectangles):
         population.append(chrom)
     return population
 
-def get_fitnesses(chroms, pizza):
+def get_fitnesses(chroms, pizza, gen):
     fits = np.zeros(len(chroms))
     for i,chrom in enumerate(chroms):
-        fits[i] = get_fitness(chrom, pizza)
+        fits[i] = get_fitness(chrom, pizza, gen)
     return fits
+
 
 def write_best_to_file(population, fits, title):
     bestfit = fits.argsort()[0]
@@ -73,14 +74,17 @@ def ga_loop(pizza, title, n_generations=100, population_size=10, n_elite=1,
     
     rows, cols = pizza.shape
     
+    sigma = 0.1*(rows+cols)/2
+
     min_rectangles, max_rectangles = get_opt_number_rectangles()
     population = gen_population(rows, cols, min_rectangles, max_rectangles)
     fitnesses = np.zeros(n_generations, population_size)
 
     for gen in range(n_generations):
         
-        fitnesses[gen,:] = get_fitnesses(population, pizza)
-        write_best_to_file(population, fitnesses[gen,:], title)
+        fitnesses[gen,:] = get_fitnesses(population, pizza, gen)
+        if gen%10==0:
+            write_best_to_file(population, fitnesses[gen,:], title)
 
         new_population = find_elite(population, fitnesses[gen,:], n_elite)
 
@@ -92,12 +96,11 @@ def ga_loop(pizza, title, n_generations=100, population_size=10, n_elite=1,
             new_population.append(child2)
 
         for i in range(n_elite, population_size):
-            child = select(population, fitnesses[gen,:], 1)
             if random() < mutation_prob:
-                child = mutate(child, rows, cols, sigma)
-                new_population[i] = child
+                new_population[i] = mutate(new_population[i], rows, cols, sigma)
         
         population = new_population
+        sigma *= 0.999
 
-    final_fitnesses = get_fitnesses(population, pizza)
+    final_fitnesses = get_fitnesses(population, pizza, gen)
     write_best_to_file(population, fitnesses[gen,:], title)
