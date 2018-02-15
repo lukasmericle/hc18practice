@@ -7,9 +7,9 @@ print(pizza)
 
 def create_rectangles(n, rows, cols):
     rs = np.random.random((n,4))
-    rs[:,[0,1]] *= rows
-    rs[:,[2,3]] *= cols
-    return np.int16(rs)
+    rs[:,[0,2]] *= rows
+    rs[:,[1,3]] *= cols
+    return np.int(rs)
 
 def to_chromosome(rs):
     return rs.flatten()
@@ -33,3 +33,10 @@ def to_rectangles(chrom):
             rs[i,1] = t
     return rs
         
+def mutate(chrom, rows, cols, sigma):
+    mu = 0
+    randos = np.random.normal(mu, sigma, len(chrom))
+    chrom += randos
+    chrom[:,[0,2]] = np.max(0, np.min(rows, chrom[:,[0,2]]))
+    chrom[:,[1,3]] = np.max(0, np.min(cols, chrom[:,[1,3]]))
+    return chrom
