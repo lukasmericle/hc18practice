@@ -1,7 +1,8 @@
 import numpy as np
+from manip import to_rectangles
 
-def get_fitness(R, pizza, L, H, alpha, beta, gamma, mu):
-
+def get_fitness(chrom, pizza, L, H, alpha, beta, gamma, mu):
+    R = to_rectangles(chrom)
     overlap_matrix = np.zeros_like(pizza)
     
     fitness = 0

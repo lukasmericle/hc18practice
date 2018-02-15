@@ -1,7 +1,8 @@
 import numpy as np
-from numpy.random import randint
+from numpy.random import randint, binomial
 from random import random
 from ComputeSingleFitness import get_fitness
+from manip import *
 
 def individual_cross_parts(input_string, cross_point):
     first_part  = input_string[:cross_point]
@@ -37,21 +38,25 @@ def select(population, fitnesses, n_indiviudals):
         parents.append(population[k])
     return parents
 
-def mutate(chrom, rows, cols, sigma):
+def mutate(chrom, rows, cols, sigma, mut_per_gene):
     mu = 0
     randos = np.random.normal(mu, sigma, len(chrom))
-    chrom += np.around(randos)
-    chrom[:,[0,2]] = np.max(0, np.min(rows, chrom[:,[0,2]]))
-    chrom[:,[1,3]] = np.max(0, np.min(cols, chrom[:,[1,3]]))
-    return chrom
+    chrom += np.around(randos * binomial(1, mut_per_gene, len(chrom))).astype(np.int16)
+    n, rs = rshp(chrom)
+    zeros = np.zeros((rs.shape[0],2))
+    rs[:,[0,2]] = np.maximum(zeros, np.minimum(zeros+rows, rs[:,[0,2]]))
+    rs[:,[1,3]] = np.maximum(zeros, np.minimum(zeros+cols, rs[:,[1,3]]))
+    # latent bug: does not rescale last 1,2,3 genes if they are present
+    rechrom = to_chromosome(rs)
+    return np.append(rechrom, chrom[len(chrom)%4:])
 
 def find_elite(chroms, fitnesses, k):
     elites = fitnesses.argsort()[:k]
-    return chroms[elites]
+    return [el for i,el in enumerate(chroms) if i in elites]
 
-def gen_population(rows, cols, min_rectangles, max_rectangles):
+def gen_population(rows, cols, population_size, min_rectangles, max_rectangles):
     population = []
-    for i in population_size:
+    for i in range(population_size):
         n = int(random() * (max_rectangles - min_rectangles) + min_rectangles)
         chrom = to_chromosome(create_rectangles(n, rows, cols))
         population.append(chrom)
@@ -77,7 +82,7 @@ def get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes):
     return nmin, nmax
 
 def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_elite=1,
-            crossover_prob=0.1, mutation_prob=0.5):
+            crossover_prob=0.1, mutation_prob=1):
     
     rows, cols = pizza.shape
     L, H = constraints
@@ -92,8 +97,10 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
-    population = gen_population(rows, cols, min_rectangles, max_rectangles)
-    fitnesses = np.zeros(n_generations, population_size)
+    avg_rectangles = (min_rectangles+max_rectangles)/2
+    mut_per_gene = mutation_prob/avg_rectangles
+    population = gen_population(rows, cols, population_size, min_rectangles, max_rectangles)
+    fitnesses = np.zeros((n_generations, population_size))
 
     for gen in range(n_generations):
         
@@ -103,16 +110,18 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
 
         new_population = find_elite(population, fitnesses[gen,:], n_elite)
 
-        for i in range(population_size - n_elite):
+        for i in range(int((population_size - n_elite)/2)):
+            parent1, parent2 = select(population, fitnesses[gen,:], 2)
             if random() < crossover_prob:
-                parent1, parent2 = select(population, fitnesses[gen,:], 2)
                 child1, child2 = crossover(parent1, parent2)
-            new_population.append(child1)
-            new_population.append(child2)
+                new_population.append(child1)
+                new_population.append(child2)
+            else:
+                new_population.append(parent1)
+                new_population.append(parent2)
 
         for i in range(n_elite, population_size):
-            if random() < mutation_prob:
-                new_population[i] = mutate(new_population[i], rows, cols, sigma)
+            new_population[i] = mutate(new_population[i], rows, cols, sigma, mut_per_gene)
         
         population = new_population
         sigma *= 0.999

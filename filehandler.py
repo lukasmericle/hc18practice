@@ -1,6 +1,6 @@
 import numpy as np
 
-TOMATO_CHAR = 'T'
+MUSHROOM_CHAR = 'M'
 
 def get_problem(filename):
     f = open(filename)
@@ -16,7 +16,7 @@ def get_problem(filename):
     
     for row in range(rows):
         line = f.readline()
-        tomatoes = [pos for pos, char in enumerate(line) if char == TOMATO_CHAR]
-        pizza[row,tomatoes] = 1
+        mushrooms = [pos for pos, char in enumerate(line) if char == MUSHROOM_CHAR]
+        pizza[row,mushrooms] = 1
     
     return pizza, minIngredients, maxSize
