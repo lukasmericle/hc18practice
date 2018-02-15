@@ -9,7 +9,8 @@ def individual_cross_parts(input_string, cross_point):
     second_part = input_string[cross_point:]
     return first_part, second_part
 
-def crossover(input_string1, input_string2):
+def crossover(input_string1, input_string2, maxlen):
+    
     n_instructions1 = len(input_string1)
     n_instructions2 = len(input_string2)
     
@@ -24,6 +25,11 @@ def crossover(input_string1, input_string2):
     
     new_individual1 = np.append(chromosome1_front, chromosome2_end)
     new_individual2 = np.append(chromosome2_front, chromosome1_end)
+
+    if len(new_individual1) > maxlen:
+        new_individual1 = new_individual1[:maxlen]
+    if len(new_individual2) > maxlen:
+        new_individual2 = new_individual2[:maxlen]
     
     return new_individual1, new_individual2
     
@@ -107,6 +113,7 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     
     rows, cols = pizza.shape
     L, H = constraints
+    maxlen = 4*rows*cols
 
     n_mushrooms = np.sum(pizza)
     n_tomatoes = pizza.size - n_mushrooms
@@ -114,7 +121,7 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     alpha = 1
     beta = 1
     gamma = 1
-    mu = 10
+    mu = 1
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
@@ -130,29 +137,30 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
             write_best_to_file(population, fitnesses[gen,:], title)
 
         new_population = find_elite(population, fitnesses[gen,:], n_elite)
+        get_overlap(new_population[0], pizza)
 
-        for i in range(int((population_size - n_elite)/2)):
+        while len(new_population) < population_size:
             parent1, parent2 = tournselect(population, fitnesses[gen,:], 2)
             if random() < crossover_prob:
-                child1, child2 = crossover(parent1, parent2)
+                child1, child2 = crossover(parent1, parent2, maxlen)
                 new_population.append(child1)
                 new_population.append(child2)
             else:
                 new_population.append(parent1)
                 new_population.append(parent2)
 
+        new_population = new_population[:population_size]
+
         for i in range(n_elite, population_size):
             new_population[i] = mutate(new_population[i], rows, cols, sigma, mut_per_gene)
         
         population = new_population
-        sigma *= 0.999
-        alpha *= 1.001
-        beta  *= 1.001
-        gamma *= 1.01
-        mu    *= 1.01
-        print()
-        for c in population:
-            print(len(c))
+        sigma *= 1 - 1e-6
+        alpha *= 1 + 1e-6
+        beta  *= 1 + 1e-6
+        gamma *= 1 + 2e-6
+        mu    *= 1 + 2e-6
+        #print(sigma, '\t', alpha, '\t', beta, '\t', gamma, '\t', mu)
 
     final_fitnesses = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
     write_best_to_file(population, fitnesses[gen,:], title)
