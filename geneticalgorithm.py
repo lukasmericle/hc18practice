@@ -25,6 +25,17 @@ def crossover(input_string1, input_string2):
     
     return new_individual1, new_individual2
     
+def select(population,fitnesses,n_indiviudals):
+    parents = []
+    probs = np.cumsum(fitnesses)/np.sum(fitnesses)
+    for i in range(n_indiviudals):
+        r = random()
+        k = 0
+        while r > probs[k]:
+            k += 1
+        parents.append(population[k])
+    return parents
+
 def mutate(chrom, rows, cols, sigma):
     mu = 0
     randos = np.random.normal(mu, sigma, len(chrom))
