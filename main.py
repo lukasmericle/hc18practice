@@ -29,8 +29,8 @@ def to_rectangles(chrom):
 
 def to_submission(chrom, title):
     rs = to_rectangles(chrom)
-    n = rs.shape[1]
-    f = open("submission_"+title+".txt")
+    n = rs.shape[0]
+    f = open("submission_"+title+".txt", "w")
     f.write(str(n)+'\n')
     for r in rs:
         r1 = r[0]; c1 = r[1]; r2 = r[2]; c2 = r[3]
