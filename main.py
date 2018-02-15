@@ -15,6 +15,9 @@ def to_chromosome(rs):
     return rs.flatten()
 
 def to_rectangles(chrom):
+    l = length(chrom)
+    n = int(l/4) - l%4
+    rs = chrom[:n].reshape((-1,4))
     rs = chrom.reshape((-1,4))
     for i in range(rs.shape[0]):
         #r1 = rs[i,0]
