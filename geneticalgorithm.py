@@ -38,7 +38,7 @@ def select(population, fitnesses, n_indiviudals):
         parents.append(population[k])
     return parents
 
-def tournselect(population, fitnesses, n_individuals,ptournament=0.75,tournament_size=4):
+def tournselect(population, fitnesses, n_individuals, ptournament=0.75, tournament_size=4):
     parents = []
     for i in range(n_individuals):
         tourn_pop = []
@@ -52,11 +52,10 @@ def tournselect(population, fitnesses, n_individuals,ptournament=0.75,tournament
             r = random()
             min_fitness_index = np.argmin(fitness_vals)
             if r < ptournament:
-                parents.append(tourn_pop[min_fitness_index])
+                parents.append(population[tourn_pop[min_fitness_index]])
                 individual_was_selected = True
             else:
                 fitness_vals[min_fitness_index] = 1e6
-        print(fitness_vals)
     return parents
 
 def mutate(chrom, rows, cols, sigma, mut_per_gene):
@@ -111,10 +110,10 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     n_mushrooms = np.sum(pizza)
     n_tomatoes = pizza.size - n_mushrooms
     
-    alpha = 1
-    beta = 1
-    gamma = 1
-    mu = 1
+    alpha = 10
+    beta = 10
+    gamma = 10
+    mu = 100
     sigma = 0.1*(rows+cols)/2
 
     min_rectangles, max_rectangles = get_opt_number_rectangles(L, H, n_mushrooms, n_tomatoes)
@@ -126,13 +125,14 @@ def ga_loop(pizza, title, constraints, n_generations=100, population_size=10, n_
     for gen in range(n_generations):
         
         fitnesses[gen,:] = get_fitnesses(population, pizza, L, H, alpha, beta, gamma, mu)
+        print(fitnesses[gen,:])
         if gen%10==0:
             write_best_to_file(population, fitnesses[gen,:], title)
 
         new_population = find_elite(population, fitnesses[gen,:], n_elite)
 
         for i in range(int((population_size - n_elite)/2)):
-            parent1, parent2 = select(population, fitnesses[gen,:], 2)
+            parent1, parent2 = tournselect(population, fitnesses[gen,:], 2)
             if random() < crossover_prob:
                 child1, child2 = crossover(parent1, parent2)
                 new_population.append(child1)
