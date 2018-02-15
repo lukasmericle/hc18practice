@@ -38,6 +38,27 @@ def select(population, fitnesses, n_indiviudals):
         parents.append(population[k])
     return parents
 
+def tournselect(population, fitnesses, n_individuals,ptournament=0.75,tournament_size=4):
+    parents = []
+    for i in range(n_individuals):
+        tourn_pop = []
+        fitness_vals = []
+        for i in range(tournament_size):
+            temp_individual_index = randint(0,len(population))
+            tourn_pop.append(temp_individual_index)
+            fitness_vals.append(fitnesses[temp_individual_index])
+        individual_was_selected = False
+        while(individual_was_selected == False):
+            r = random()
+            min_fitness_index = np.argmin(fitness_vals)
+            if r < ptournament:
+                parents.append(tourn_pop[min_fitness_index])
+                individual_was_selected = True
+            else:
+                fitness_vals[min_fitness_index] = 1e6
+        print(fitness_vals)
+    return parents
+
 def mutate(chrom, rows, cols, sigma, mut_per_gene):
     mu = 0
     randos = np.random.normal(mu, sigma, len(chrom))
